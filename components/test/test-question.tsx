@@ -4,6 +4,7 @@ import { useRadioGroup, Flex, Text, Button } from "@chakra-ui/react";
 
 import TestProgress from "./test-progress";
 import TestAnswerOption from "./test-answer-option";
+import { saveToCsv, CsvData } from "../../lib/csv-utils";
 
 import { personalityTest } from "../../data/personality-test";
 import {
@@ -30,8 +31,7 @@ export default function TestQuestion() {
     onChange: (value) => {
       const newUserTestAnswers = [...userTestAnswers];
 
-      newUserTestAnswers[currentPersonalityTestIndex] =
-        value as TestAnswer["type"];
+      newUserTestAnswers[currentPersonalityTestIndex] = value as string;
 
       setUserTestAnswers(newUserTestAnswers);
 
@@ -70,27 +70,40 @@ export default function TestQuestion() {
     });
   }
 
-  function handleSeeResultButtonClick() {
+  function handleSubmitButtonClick() {
+    // Capture the last answer
+    const newUserTestAnswers = [...userTestAnswers];
+    if (!isUserAlreadyPickAnswer) {
+      newUserTestAnswers[currentPersonalityTestIndex] = getRootProps().value as string;
+      setUserTestAnswers(newUserTestAnswers);
+    }
+  
     const timestamp = Date.now();
-    const testScores = userTestAnswers.map((answer, index) =>
-      getQuestionAnswerScore(index + 1, answer)
-    );
-
+    const testScores = newUserTestAnswers.map((answer, index) => ({
+      sNo: index + 1,
+      statement: personalityTest[index].question,
+      score: getQuestionAnswerScore(index + 1, answer),
+    }));
+  
     saveTestResult({
-      testAnswers: userTestAnswers,
-      testScores,
+      testAnswers: newUserTestAnswers,
+      testScores: testScores.map((score) => score.score),
       timestamp,
     })
       .tap(() => {
         setUserTestAnswers([]);
+        // Save to CSV
+        const filename = `test_result_${timestamp}.csv`;
+        saveToCsv(testScores, filename);
       })
-      .tapOk((id) => {
-        router.replace(`/test/result/${id}`);
+      .tapOk(() => {
+        router.replace("/");
       })
       .tapError((error) => {
         console.error(error);
       });
   }
+  
 
   return (
     <Flex
@@ -104,45 +117,27 @@ export default function TestQuestion() {
     >
       <TestProgress />
       <Flex direction="column">
-        <Text
-          fontWeight="bold"
-          align="center"
-        >
+        <Text fontWeight="bold" align="center">
           #{currentPersonalityTestIndex + 1}
         </Text>
-        <Text
-          fontSize="lg"
-          align="center"
-        >
+        <Text fontSize="lg" align="center">
           {personalityTest[currentPersonalityTestIndex].question}
         </Text>
       </Flex>
-      <Flex
-        w="full"
-        gap={4}
-        direction="column"
-        {...group}
-      >
+      <Flex w="full" gap={4} direction="column" {...group}>
         {personalityTest[currentPersonalityTestIndex].answerOptions.map(
           (answerOption) => {
-            const radio = getRadioProps({ value: answerOption.type });
+            const radio = getRadioProps({ value: answerOption.answer });
 
             return (
-              <TestAnswerOption
-                key={answerOption.type}
-                {...radio}
-              >
+              <TestAnswerOption key={answerOption.answer} {...radio}>
                 {answerOption.answer}
               </TestAnswerOption>
             );
           }
         )}
       </Flex>
-      <Flex
-        direction="row"
-        w="full"
-        gap={4}
-      >
+      <Flex direction="row" w="full" gap={4}>
         <Button
           w="full"
           variant="outline"
@@ -158,9 +153,9 @@ export default function TestQuestion() {
           <Button
             w="full"
             colorScheme="primary"
-            onClick={handleSeeResultButtonClick}
+            onClick={handleSubmitButtonClick}
           >
-            See Result
+            Submit
           </Button>
         ) : (
           <Button

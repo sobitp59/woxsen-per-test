@@ -25,7 +25,7 @@ export default function TestInstructions(props: TestInstructionsProps) {
         gap={2}
       >
         <Text>
-          Completing the test should only take 15 minutes or so. Here is several
+          There are only 60 questions in this test & completing them should only take 15 minutes or so. Here is several
           hints about how to complete this test:
         </Text>
         <UnorderedList spacing={2}>

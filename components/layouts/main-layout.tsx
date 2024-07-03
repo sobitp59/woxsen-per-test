@@ -3,7 +3,7 @@ import { ReactNode } from "react";
 import { Flex } from "@chakra-ui/react";
 
 import Nav from "../common/nav";
-import Footer from "../common/footer";
+
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -13,7 +13,7 @@ export default function MainLayout(props: MainLayoutProps) {
   return (
     <>
       <Head>
-        <title>MBTI Personality Test</title>
+        <title>Woxsen University's Personality Test</title>
         <meta
           name="description"
           content="MBTI Personality Test"
@@ -37,7 +37,6 @@ export default function MainLayout(props: MainLayoutProps) {
       >
         {props.children}
       </Flex>
-      <Footer />
     </>
   );
 }

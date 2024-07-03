@@ -21,7 +21,7 @@ export default function Nav() {
           fontWeight="bold"
           textTransform="uppercase"
         >
-          MBTI Personality Test
+          Home Page
         </Button>
       </Link>
       <Link href="/test/result/history">

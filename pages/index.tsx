@@ -27,16 +27,16 @@ export default function HomePage() {
             textAlign="center"
           >
             <Highlight
-              query="MBTI Personality Test"
+              query="WoU's Personality Test"
               styles={{
                 py: 1,
                 px: 4,
                 rounded: "full",
-                bg: "primary.500",
+                bg: "red.500",
                 color: "white",
               }}
             >
-              Welcome to MBTI Personality Test
+              Welcome to WoU's Personality Test
             </Highlight>
           </Heading>
           <Text
@@ -48,7 +48,7 @@ export default function HomePage() {
           <Link href="/test">
             <Button
               w="min-content"
-              colorScheme="primary"
+              colorScheme="red"
               variant="outline"
               rightIcon={<FiArrowRight size={20} />}
             >
