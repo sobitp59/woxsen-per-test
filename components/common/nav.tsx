@@ -24,14 +24,6 @@ export default function Nav() {
           Home Page
         </Button>
       </Link>
-      <Link href="/test/result/history">
-        <Button
-          variant="outline"
-          leftIcon={<BiHistory size={24} />}
-        >
-          Test Result History
-        </Button>
-      </Link>
     </Flex>
   );
 }

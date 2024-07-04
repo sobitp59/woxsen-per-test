@@ -36,7 +36,7 @@ export default function HomePage() {
                 color: "white",
               }}
             >
-              Welcome to WoU's Personality Test
+              Welcome to WoU&apos;s Personality Test
             </Highlight>
           </Heading>
           <Text

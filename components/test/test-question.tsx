@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRadioGroup, Flex, Text, Button } from "@chakra-ui/react";
 
 import TestProgress from "./test-progress";
@@ -10,98 +10,54 @@ import { personalityTest } from "../../data/personality-test";
 import {
   TestAnswerOption as TestAnswer,
   getQuestionAnswerScore,
-  saveTestResult,
 } from "../../lib/personality-test";
 import useUserTestAnswersStore from "../../store/use-user-test-answers";
 
 export default function TestQuestion() {
   const router = useRouter();
-
   const { userTestAnswers, setUserTestAnswers } = useUserTestAnswersStore();
-
-  const [currentPersonalityTestIndex, setCurrentPersonalityTestIndex] =
-    useState(0);
-
-  const isUserAlreadyPickAnswer =
-    userTestAnswers[currentPersonalityTestIndex] !== undefined;
-
-  const { getRootProps, getRadioProps, setValue } = useRadioGroup({
+  const [currentPersonalityTestIndex, setCurrentPersonalityTestIndex] = useState(0);
+  const isUserAlreadyPickAnswer = userTestAnswers[currentPersonalityTestIndex] !== undefined;
+  const { getRootProps, getRadioProps } = useRadioGroup({
     name: "answer",
-    defaultValue: userTestAnswers[currentPersonalityTestIndex],
+    defaultValue: String(userTestAnswers[currentPersonalityTestIndex] || ""), 
     onChange: (value) => {
       const newUserTestAnswers = [...userTestAnswers];
-
-      newUserTestAnswers[currentPersonalityTestIndex] = value as string;
-
       setUserTestAnswers(newUserTestAnswers);
-
-      handleNextButtonClick();
     },
   });
 
-  const group = getRootProps();
-
-  useEffect(() => {
-    if (userTestAnswers[currentPersonalityTestIndex] === undefined) {
-      setValue("");
-      return;
-    }
-
-    setValue(userTestAnswers[currentPersonalityTestIndex]);
-  }, [currentPersonalityTestIndex, userTestAnswers, setValue]);
-
   function handleNextButtonClick() {
-    setCurrentPersonalityTestIndex((currentPersonalityTestIndex) => {
-      if (currentPersonalityTestIndex + 1 > personalityTest.length - 1) {
-        return currentPersonalityTestIndex;
-      }
-
-      return currentPersonalityTestIndex + 1;
-    });
+    setCurrentPersonalityTestIndex((prevIndex) =>
+      prevIndex < personalityTest.length - 1 ? prevIndex + 1 : prevIndex
+    );
   }
 
   function handlePreviousButtonClick() {
-    setCurrentPersonalityTestIndex((currentPersonalityTestIndex) => {
-      if (currentPersonalityTestIndex - 1 < 0) {
-        return currentPersonalityTestIndex;
-      }
-
-      return currentPersonalityTestIndex - 1;
-    });
+    setCurrentPersonalityTestIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : prevIndex
+    );
   }
 
   function handleSubmitButtonClick() {
-    // Capture the last answer
-    const newUserTestAnswers = [...userTestAnswers];
-    if (!isUserAlreadyPickAnswer) {
-      newUserTestAnswers[currentPersonalityTestIndex] = getRootProps().value as string;
-      setUserTestAnswers(newUserTestAnswers);
-    }
-  
     const timestamp = Date.now();
-    const testScores = newUserTestAnswers.map((answer, index) => ({
-      sNo: index + 1,
-      statement: personalityTest[index].question,
-      score: getQuestionAnswerScore(index + 1, answer),
-    }));
+    const testScores: CsvData[] = userTestAnswers.map((answer, index) => {
+      const score = getQuestionAnswerScore(index + 1, String(answer));
   
-    saveTestResult({
-      testAnswers: newUserTestAnswers,
-      testScores: testScores.map((score) => score.score),
-      timestamp,
-    })
-      .tap(() => {
-        setUserTestAnswers([]);
-        // Save to CSV
-        const filename = `test_result_${timestamp}.csv`;
-        saveToCsv(testScores, filename);
-      })
-      .tapOk(() => {
-        router.replace("/");
-      })
-      .tapError((error) => {
-        console.error(error);
-      });
+      if (score === undefined) {
+        throw new Error(`Score undefined for answer at index ${index}`);
+      }
+  
+      return {
+        sNo: index + 1,
+        statement: personalityTest[index]?.question || "", // Ensure statement is string
+        score: score,
+      };
+    });
+  
+    saveToCsv(testScores, `test_result_${timestamp}.csv`);
+  
+    router.replace("/"); // Redirect to home page after submission
   }
   
 
@@ -121,16 +77,15 @@ export default function TestQuestion() {
           #{currentPersonalityTestIndex + 1}
         </Text>
         <Text fontSize="lg" align="center">
-          {personalityTest[currentPersonalityTestIndex].question}
+          {personalityTest[currentPersonalityTestIndex]?.question}
         </Text>
       </Flex>
-      <Flex w="full" gap={4} direction="column" {...group}>
-        {personalityTest[currentPersonalityTestIndex].answerOptions.map(
+      <Flex w="full" gap={4} direction="column" {...getRootProps()}>
+        {personalityTest[currentPersonalityTestIndex]?.answerOptions.map(
           (answerOption) => {
-            const radio = getRadioProps({ value: answerOption.answer });
-
+            const radioProps = getRadioProps({ value: answerOption.answer });
             return (
-              <TestAnswerOption key={answerOption.answer} {...radio}>
+              <TestAnswerOption key={answerOption.answer} {...radioProps}>
                 {answerOption.answer}
               </TestAnswerOption>
             );
@@ -141,9 +96,7 @@ export default function TestQuestion() {
         <Button
           w="full"
           variant="outline"
-          {...(currentPersonalityTestIndex === 0 && {
-            disabled: true,
-          })}
+          disabled={currentPersonalityTestIndex === 0}
           onClick={handlePreviousButtonClick}
         >
           Previous
@@ -162,9 +115,7 @@ export default function TestQuestion() {
             w="full"
             colorScheme="primary"
             variant="outline"
-            {...(!isUserAlreadyPickAnswer && {
-              disabled: true,
-            })}
+            disabled={!isUserAlreadyPickAnswer}
             onClick={handleNextButtonClick}
           >
             Next

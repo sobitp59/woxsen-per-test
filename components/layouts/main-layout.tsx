@@ -13,7 +13,7 @@ export default function MainLayout(props: MainLayoutProps) {
   return (
     <>
       <Head>
-        <title>Woxsen University's Personality Test</title>
+        <title>Woxsen University&apos;s Personality Test</title>
         <meta
           name="description"
           content="MBTI Personality Test"
