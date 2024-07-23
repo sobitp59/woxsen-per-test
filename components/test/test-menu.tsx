@@ -1,13 +1,28 @@
 import { Flex, Button } from "@chakra-ui/react";
 import { RiInformationLine } from "react-icons/ri";
-
 import TestTimer from "./test-timer";
 
 interface TestMenuProps {
   onShowInstructionsButtonClick: () => void;
+  onShowAbInstructionsButtonClick: () => void; // Add new prop for Ability Test Instructions
+  onShowIAbInstructionsButtonClick: () => void;
+  showAbilityTesting: boolean; // Add prop to indicate if Ability Testing phase is active
+  showInferentialAbilityTesting: boolean;
 }
 
 export default function TestMenu(props: TestMenuProps) {
+  const { onShowInstructionsButtonClick, onShowAbInstructionsButtonClick, onShowIAbInstructionsButtonClick, showAbilityTesting, showInferentialAbilityTesting } = props;
+
+  const handleClick = () => {
+    if (showAbilityTesting) {
+      onShowAbInstructionsButtonClick(); // Trigger Ability Test Instructions function
+    } else if (showInferentialAbilityTesting) {
+      onShowIAbInstructionsButtonClick(); // Trigger Inferential Ability Test Instructions function
+    } else {
+      onShowInstructionsButtonClick(); // Trigger Personality Test or Basic Info function
+    }
+  };
+
   return (
     <Flex
       width="full"
@@ -23,7 +38,7 @@ export default function TestMenu(props: TestMenuProps) {
           aria-label="instructions"
           variant="outline"
           leftIcon={<RiInformationLine size={24} />}
-          onClick={props.onShowInstructionsButtonClick}
+          onClick={handleClick}
         >
           Instructions
         </Button>

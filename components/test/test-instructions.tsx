@@ -1,3 +1,6 @@
+// components/test/test-instructions.tsx
+import { useState } from 'react';
+import { useRouter} from 'next/router';
 import {
   Flex,
   Heading,
@@ -11,7 +14,30 @@ interface TestInstructionsProps {
   onCloseTestInstructions: () => void;
 }
 
-export default function TestInstructions(props: TestInstructionsProps) {
+export default function TestInstructions({ onCloseTestInstructions }: TestInstructionsProps) {
+  const router = useRouter();
+  const [showTransition, setShowTransition] = useState(false);
+
+  const handleStartTest = () => {
+    onCloseTestInstructions();
+  };
+
+  // const handlepersonality = () => {
+  //   setShowTransition(true)
+  // };
+  // if (showTransition) {
+  //   return (
+  //     <Flex direction="column" align="center" justify="center" minH="100vh" p={4}>
+  //       <Text mb={4} textAlign="center">
+  //         Now, you're moving to the Personality Testing phase. Please click 'Go ahead'.
+  //       </Text>
+  //       <Button onClick={handleStartTest} colorScheme="blue">
+  //         Go ahead
+  //       </Button>
+  //     </Flex>
+  //   );
+  // }
+
   return (
     <Flex
       h="full"
@@ -25,7 +51,7 @@ export default function TestInstructions(props: TestInstructionsProps) {
         gap={2}
       >
         <Text>
-          There are only 60 questions in this test and completing them should only take 15 minutes or so. Here is several
+          There are 60 questions in this test which should only take 15 minutes or so. Here are several
           hints about how to complete this test:
         </Text>
         <UnorderedList spacing={2}>
@@ -37,19 +63,27 @@ export default function TestInstructions(props: TestInstructionsProps) {
             worded poorly. Go with what feels best.
           </ListItem>
           <ListItem>
-            Answer the questions as “the way you are”, not “the way you’d like
-            to be seen by others”.
+            Answer the questions as "the way you are", not "the way you'd like
+            to be seen by others".
           </ListItem>
         </UnorderedList>
       </Flex>
-      <Button
+      {/* <Button
         w="min-content"
-        colorScheme="primary"
+        colorScheme="red"
         alignSelf="flex-end"
-        onClick={props.onCloseTestInstructions}
+        onClick={handlepersonality}
       >
         Okay, I got it!
-      </Button>
+      </Button> */}
+      <Flex direction="column" align="center" justify="center" minH="10vh" p={4}>
+        <Text mb={4} textAlign="center">
+          Please click 'Go ahead'.
+        </Text>
+        <Button onClick={handleStartTest} colorScheme="blue">
+          Go ahead
+        </Button>
+      </Flex>
     </Flex>
   );
 }

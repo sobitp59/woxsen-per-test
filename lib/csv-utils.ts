@@ -1,15 +1,31 @@
 // lib/csv-utils.ts
-import Papa from "papaparse";
-import { saveAs } from "file-saver";
 
-export interface CsvData {
-  sNo: number;
-  statement: string;
-  score: number;
-}
+import { CsvData } from "./types";
 
-export function saveToCsv(data: CsvData[], filename: string) {
-  const csv = Papa.unparse(data);
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  saveAs(blob, filename);
+export async function saveToCsv(data: CsvData[], filename: string): Promise<void> {
+
+  const csvContent = [
+    "S.No.,Statement,Score",
+    ...data.map((row) => `${row.sNo},${row.statement},${row.score}`),
+  ].join("\n");
+
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8" });
+  
+  
+  if (navigator && (navigator as any).msSaveBlob) {
+    // For Internet Explorer and older Edge versions
+    (navigator as any).msSaveBlob(blob, filename);
+  } else {
+    // For other browsers
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.target = "_blank"
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+  
 }

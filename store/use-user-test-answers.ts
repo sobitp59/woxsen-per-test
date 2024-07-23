@@ -1,10 +1,10 @@
+// store/use-user-test-answers.ts
+
 import create from "zustand";
 
-import { TestAnswerOption } from "../lib/personality-test";
-
-interface UserTestAnswersState {
-  userTestAnswers: TestAnswerOption["score"][]; // Storing scores as numbers
-  setUserTestAnswers: (newUserTestAnswers: TestAnswerOption["score"][]) => void; // Updating with scores as numbers
+export interface UserTestAnswersState {
+  userTestAnswers: string[]; // Store answers as strings
+  setUserTestAnswers: (newUserTestAnswers: string[]) => void; // Update with answers as strings
 }
 
 const useUserTestAnswersStore = create<UserTestAnswersState>((set) => ({

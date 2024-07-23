@@ -27,7 +27,7 @@ export default function HomePage() {
             textAlign="center"
           >
             <Highlight
-              query="WoU's Personality Test"
+              query="Behavioural Assessment"
               styles={{
                 py: 1,
                 px: 4,
@@ -36,15 +36,9 @@ export default function HomePage() {
                 color: "white",
               }}
             >
-              Welcome to WoU&apos;s Personality Test
+              Behavioural Assessment
             </Highlight>
           </Heading>
-          <Text
-            fontSize="xl"
-            align="center"
-          >
-            Learn to know yourself better with this personality test.
-          </Text>
           <Link href="/test">
             <Button
               w="min-content"

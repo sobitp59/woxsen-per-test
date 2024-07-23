@@ -1,3 +1,4 @@
+// components/nav.tsx
 import Link from "next/link";
 import { Flex, Button } from "@chakra-ui/react";
 import { BiHistory } from "react-icons/bi";
@@ -22,6 +23,16 @@ export default function Nav() {
           textTransform="uppercase"
         >
           Home Page
+        </Button>
+      </Link>
+      <Link href="/admin-login">
+        <Button
+          colorScheme="black"
+          variant="link"
+          fontWeight="bold"
+          textTransform="uppercase"
+        >
+          Admin Login
         </Button>
       </Link>
     </Flex>

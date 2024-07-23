@@ -1,3 +1,5 @@
+// components/test/test-answer-option.tsx
+
 import { useRadio, Box } from "@chakra-ui/react";
 
 export default function TestAnswerOption(props: any) {
@@ -6,23 +8,22 @@ export default function TestAnswerOption(props: any) {
   const checkbox = getCheckboxProps();
 
   return (
-    <Box
-      w="full"
-      as="label"
-    >
+    <Box w="full" as="label">
       <input {...input} />
       <Box
         px={5}
         py={3}
+        mb={3}
         cursor="pointer"
         borderWidth={1}
         borderRadius="md"
         userSelect="none"
         _checked={{
-          bg: "primary.500",
+          bg: "red.500",
           color: "white",
-          borderColor: "primary.500",
+          borderColor: "red.500",
         }}
+        
         _focus={{
           boxShadow: "outline",
         }}

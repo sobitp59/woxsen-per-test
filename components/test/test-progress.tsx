@@ -1,3 +1,5 @@
+// components/test/test-progress.tsx
+
 import { Progress } from "@chakra-ui/react";
 
 import { personalityTest } from "../../data/personality-test";
@@ -13,7 +15,7 @@ export default function TestProgress() {
       w="full"
       size="lg"
       rounded="md"
-      colorScheme="primary"
+      colorScheme="red"
       value={progress}
     />
   );
