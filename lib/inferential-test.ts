@@ -1,6 +1,6 @@
 import { inferentialAbilityQuestions } from "../data/Inferential-test";
 export interface IATestQuestion {
-    id: number;
+    no: number;
     text: string;
     options: TestAnswerOption[];
   }
@@ -10,12 +10,13 @@ export interface IATestQuestion {
     score?: number;
   }
   
-  export function getQuestionAnswerScore(
+  export function getQuestionAnswerInferentialScore(
     questionNumber: number,
     answer: string
   ): number | undefined {
+
     const question = inferentialAbilityQuestions.find(
-      (q) => q.id === questionNumber
+      (q) => q.no === questionNumber
     );
   
     if (!question) return undefined;
@@ -23,6 +24,6 @@ export interface IATestQuestion {
     const selectedOption = question.options.find(
       (option) => option.answer === answer
     );
-  
+
     return selectedOption?.score;
   }

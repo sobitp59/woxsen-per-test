@@ -8,19 +8,23 @@ import {
 } from "@chakra-ui/react";
 import { personalityTest } from '../../data/personality-test';
 import { TestQuestion } from '../../lib/personality-test';
-import { calculateTraitScores } from "../score/Personality_Score";
-import PersonalityScoresPage from "../score/PersonalityScoresPage";
+import dayjs from 'dayjs';
 import TestAnswerOption from "./test-answer-option";
 
 interface PersonalityTestProps {
-  onComplete: () => void;
+  onComplete: (scores: Record<number, string>, timeRecords: Record<string, string>) => void;
 }
 
 const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showScores, setShowScores] = useState(false);
-  const [traitScores, setTraitScores] = useState<Record<string, number> | null>(null);
+  const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
+  const [lastFileNumber, setLastFileNumber] = useState<number>(0);
+
+  useEffect(() => {
+    setStartTime(dayjs()); 
+  }, []);
 
   const currentQuestion: TestQuestion = personalityTest[currentQuestionIndex];
   const isUserAlreadyPickAnswer = answers[currentQuestion?.no] !== undefined;
@@ -40,7 +44,6 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   }
 
   function handleNextButtonClick() {
-
     if (currentQuestionIndex < personalityTest.length - 1) {
       if (isAttentivenessCheckPassed()) {
         setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
@@ -78,25 +81,35 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   }
 
   async function handleGoAhead() {
+    const endTime = dayjs();
+    const elapsedTime = endTime.diff(startTime, 'seconds');
 
-    // const timestamp = Date.now();
-    // const folderPath = 'personality'
-    const filename = `personality_sheet.csv`;
+    const newFileNumber = lastFileNumber + 1;
+    setLastFileNumber(newFileNumber);
+    const filename = `personality_sheet_${newFileNumber}.csv`;
 
-    console.log('user TEST answers', answers)
+    console.log('user TEST answers', answers);
+    console.log("Elapsed Time Personality:", elapsedTime); // Debugging log
 
     try {
+      // Filter out attentiveness questions from answers
+      const filteredAnswers = Object.entries(answers)
+        .filter(([key]) => !isAttentivenessQuestion(Number(key)))
+        .reduce((acc, [key, value]) => {
+          acc[Number(key)] = value;
+          return acc;
+        }, {} as Record<number, string>);
+
       const response = await fetch("/api/save-csv", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ testScores: Object.values(answers), filename }),
+        body: JSON.stringify({ testScores: Object.values(filteredAnswers), filename, moduleType: 'Personality', timeRecords: `${elapsedTime} seconds` }),
       });
 
-
-      console.log("RESPONSE ", response)
-
+      console.log('PERSONALITY ANSWERS ', filteredAnswers);
+      console.log("RESPONSE ", response);
 
       if (!response.ok) {
         throw new Error("Failed to save personality test");
@@ -106,10 +119,15 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
       console.log("CSV File saved successfully:", result.filename);
 
       setShowScores(true);
-      onComplete();
+      const scores: Record<number, string> = { ...filteredAnswers };
+      onComplete(scores, { [`Total Time`]: `${elapsedTime} seconds` });
     } catch (error) {
       console.error("Error saving personality test:", error);
     }
+  }
+
+  function isAttentivenessQuestion(questionNo: number): boolean {
+    return [3.5, 16.5, 28.5, 34.5, 49.5, 55.5].includes(questionNo);
   }
 
   function getDisplayedQuestionIndex(): number {
@@ -128,15 +146,7 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
 
   const progress = (getDisplayedQuestionIndex() / getTotalQuestionCount()) * 100;
 
-  console.log('TRAIT SCORES (personailty.tsx) ', traitScores)
-
-  // if (showScores) {
-  //   return (
-  //     <PersonalityScoresPage
-  //       traitScores={traitScores!}
-  //     />
-  //   );
-  // }
+  // console.log('TRAIT SCORES (personality.tsx) ', traitScores);
 
   return (
     <Flex
@@ -186,7 +196,6 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
           onClick={handleNextButtonClick}
         >
           {currentQuestionIndex === getTotalQuestionCount() + 5 ? "Submit" : "Next"}
-          {/* {currentQuestionIndex + 1 === getTotalQuestionCount() ? "Submit" : "Next"} */}
         </Button>
       </Flex>
     </Flex>

@@ -1,6 +1,6 @@
 import { questions } from "../data/ability-test";
 export interface ATestQuestion {
-    id: number;
+    no: number;
     text: string;
     options: TestAnswerOption[];
     section: string;
@@ -12,12 +12,12 @@ export interface ATestQuestion {
     score?: number;
   }
   
-  export function getQuestionAnswerScore(
+  export function getQuestionAnswerAbilityScore(
     questionNumber: number,
     answer: string
   ): number | undefined {
     const question = questions.find(
-      (q) => q.id === questionNumber
+      (q) => q.no === questionNumber
     );
   
     if (!question) return undefined;

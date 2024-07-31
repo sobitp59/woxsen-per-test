@@ -1,9 +1,10 @@
 import { Flex, Text, Button, Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { inferentialAbilityQuestions } from "../../data/Inferential-test"; 
-
+import { getQuestionAnswerScore } from "../../lib/inferential-test";
 interface InferentialAbilityScoringProps {
   answers: Record<number, { answer: string; score?: number }>;
+  // answers: Record<number, string>;
 }
 
 const InferentialAbilityScoring: React.FC<InferentialAbilityScoringProps> = ({ answers }) => {
@@ -14,14 +15,14 @@ const InferentialAbilityScoring: React.FC<InferentialAbilityScoringProps> = ({ a
   useEffect(() => {
     let obtained = 0;
     inferentialAbilityQuestions.forEach(IATestQuestion => {
-      const userAnswer = answers[IATestQuestion.id];
+      const userAnswer = answers[IATestQuestion.no];
       if (userAnswer && userAnswer.score) {
         obtained += userAnswer.score;
       }
     });
     setObtainedScore(obtained);
   }, [answers]);
-
+  
   return (
     <Flex
       py={4}
@@ -41,7 +42,7 @@ const InferentialAbilityScoring: React.FC<InferentialAbilityScoringProps> = ({ a
         </Thead> */}
         <Tbody>
           <Tr>
-            <Td>Inferential</Td>
+            <Td w={'50'}>Inferential</Td>
             <Td>{totalScore}</Td>
             <Td>{obtainedScore !== null ? obtainedScore : "Calculating..."}</Td>
           </Tr>

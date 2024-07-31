@@ -4,27 +4,42 @@ import { FiClock } from "react-icons/fi";
 import { Option } from "@swan-io/boxed";
 import dayjs from "dayjs";
 
-const SECOND_IN_MILISECONDS = 1000;
+const SECOND_IN_MILLISECONDS = 1000;
 
-export default function TestTimer() {
+interface TestTimerProps {
+  running: boolean;
+  onEnd?: (elapsedTime: dayjs.Dayjs) => void;
+}
+
+export default function TestTimer({ running, onEnd }: TestTimerProps) {
   const [elapsedTime, setElapsedTime] = useState<Option<dayjs.Dayjs>>(
     Option.None()
   );
 
   useEffect(() => {
-    if (elapsedTime.isNone()) {
-      setElapsedTime(Option.Some(dayjs().minute(0).second(0).millisecond(0)));
-      return;
+    let intervalId: NodeJS.Timeout;
+
+    if (running && elapsedTime.isNone()) {
+      setElapsedTime(
+        Option.Some(dayjs().minute(0).second(0).millisecond(0))
+      );
     }
 
-    const intervalId = setTimeout(() => {
-      setElapsedTime((elapsedTime) =>
-        elapsedTime.map((elapsedTime) => elapsedTime.add(1000, "ms"))
-      );
-    }, SECOND_IN_MILISECONDS);
+    if (running) {
+      intervalId = setInterval(() => {
+        setElapsedTime((elapsedTime) =>
+          elapsedTime.map((time) => time.add(SECOND_IN_MILLISECONDS, "ms"))
+        );
+      }, SECOND_IN_MILLISECONDS);
+    } else {
+      clearInterval(intervalId);
+      if (elapsedTime.isSome() && onEnd) {
+        onEnd(elapsedTime.value);
+      }
+    }
 
-    return () => clearTimeout(intervalId);
-  }, [elapsedTime]);
+    return () => clearInterval(intervalId);
+  }, [running, elapsedTime, onEnd]);
 
   return (
     <Flex
@@ -39,10 +54,9 @@ export default function TestTimer() {
       <FiClock size={20} />
       <Text fontWeight="bold">
         {elapsedTime.match({
-          Some: (elapsedTime) => {
-            const minute = elapsedTime.minute().toString().padStart(2, "0");
-            const second = elapsedTime.second().toString().padStart(2, "0");
-
+          Some: (time) => {
+            const minute = time.minute().toString().padStart(2, "0");
+            const second = time.second().toString().padStart(2, "0");
             return `${minute} : ${second}`;
           },
           None: () => "-- : --",

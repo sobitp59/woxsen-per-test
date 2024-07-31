@@ -4,31 +4,29 @@ import { TRAIT_QUESTIONS } from "./Personality_Score";
 
 interface PersonalityScoresProps {
   traitScores: Record<string, number>;
-  onComplete : () => void;
+  onComplete: () => void;
 }
 
 const PersonalityScoresPage: React.FC<PersonalityScoresProps> = ({ traitScores, onComplete }) => {
 
   const traitResults = Object.keys(TRAIT_QUESTIONS).map((trait) => {
-    console.log('TRAIT ', trait)
     const score = traitScores[trait];
-    console.log('SCORES ', score)
     const totalQuestions = TRAIT_QUESTIONS[trait].length;
-    const percentage = (score / (totalQuestions * 10 )) * 10;
+    const percentage = (score / (totalQuestions * 10)) * 10;
 
     return { trait, percentage };
   });
 
   const getColor = (percentage: number) => {
-    if (percentage <= 1.9) {
-      return "red"
-    } else if (percentage > 1.9 && percentage <= 3.8) {
-      return "yellow"; 
+    if (percentage <= 2.7) {
+      return { color: "red", label: "Low" };
+    } else if (percentage >= 2.7 && percentage <= 3.5) {
+      return { color: "yellow", label: "Average" };
     } else {
-      return "green"; 
+      return { color: "green", label: "High" };
     }
   };
-  
+
   return (
     <Flex direction="column" alignItems="center" justifyContent="center" h="100%" w="100%">
       <Text alignItems="center" fontWeight="bold" fontSize="xl" mb={10}>
@@ -47,25 +45,18 @@ const PersonalityScoresPage: React.FC<PersonalityScoresProps> = ({ traitScores, 
                 max={5}
                 w="100%"
                 h="40px"
-                colorScheme={getColor(percentage)}
-                // sx={{
-                //   '& > div': {
-                //     backgroundImage: `linear-gradient(to right, 
-                //       red 0%, 
-                //       red ${1.9/5 * 100}%, 
-                //       yellow ${2.5 /5* 100}%, 
-                //       green ${3.5/5 * 100}%, 
-                //       green 100%)`,
-                //   },
-                // }}
+                colorScheme={getColor(percentage).color}
               />
               <Text ml={2}>{percentage.toFixed(1)}</Text>
+              <Text ml={2} color={getColor(percentage).color} fontWeight="bold">
+                {getColor(percentage).label}
+              </Text>
             </Flex>
           </Flex>
         ))}
       </Flex>
       <Button mt={2} onClick={onComplete}>
-        Next 
+        Next
       </Button>
     </Flex>
   );

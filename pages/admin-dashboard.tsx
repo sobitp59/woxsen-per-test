@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { Flex, Table, Thead, Tbody, Tr, Th, Td, Button, Link } from "@chakra-ui/react";
+import { Flex, Table, Thead, Tbody, Tr, Th, Td, Button, Text } from "@chakra-ui/react";
 import { useRouter } from "next/router";
+import * as XLSX from "xlsx";
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [csvFiles, setCsvFiles] = useState<string[]>([]);
+  const [excelFileUrl, setExcelFileUrl] = useState<string | null>(null);
+  const [excelFileName, setExcelFileName] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchCsvFiles() {
@@ -13,6 +16,7 @@ export default function AdminDashboard() {
         if (response.ok) {
           const files = await response.json();
           setCsvFiles(files);
+          await createExcelFile(files);
         } else {
           throw new Error("Failed to fetch CSV files");
         }
@@ -23,6 +27,31 @@ export default function AdminDashboard() {
     fetchCsvFiles();
   }, []);
 
+  async function createExcelFile(files: string[]) {
+    try {
+      const workbook = XLSX.utils.book_new();
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const response = await fetch(`/api/download-csv?filename=${encodeURIComponent(file)}`);
+        if (response.ok) {
+          const csvData = await response.text();
+          const workbookData = XLSX.read(csvData, { type: "string", header: 1 });
+          const worksheet = workbookData.Sheets[workbookData.SheetNames[0]];
+          XLSX.utils.book_append_sheet(workbook, worksheet, `Sheet ${i + 1}`);
+        } else {
+          console.error(`Failed to fetch CSV file: ${file}`);
+        }
+      }
+      const excelData = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const blob = new Blob([excelData], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      const url = URL.createObjectURL(blob);
+      setExcelFileUrl(url);
+      setExcelFileName("Scores.xlsx"); // Set the desired file name for download
+    } catch (error) {
+      console.error("Error creating Excel file:", error);
+    }
+  }
+
   function handleLogout() {
     router.push("/");
   }
@@ -32,22 +61,26 @@ export default function AdminDashboard() {
       <Button mb={4} onClick={handleLogout}>
         Logout
       </Button>
-      <Table variant="simple">
+      {/* <Table variant="simple" mb={4}>
         <Thead>
           <Tr>
-            <Th>S.No</Th>
             <Th>CSV Files</Th>
+            <Th>Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
           {csvFiles.length > 0 ? (
             csvFiles.map((file, index) => (
               <Tr key={file}>
-                <Td>{index + 1}</Td>
+                <Td>{file}</Td>
                 <Td>
-                  <Link href={`/api/download-csv?filename=${encodeURIComponent(file)}`} download>
-                    {file}
-                  </Link>
+                  <Button
+                    as="a"
+                    href={`/api/download-csv?filename=${encodeURIComponent(file)}`}
+                    download={file}
+                  >
+                    Download {file}
+                  </Button>
                 </Td>
               </Tr>
             ))
@@ -57,7 +90,15 @@ export default function AdminDashboard() {
             </Tr>
           )}
         </Tbody>
-      </Table>
+      </Table> */}
+      {excelFileUrl && (
+        <Flex direction="column" align="center" mt={4}>
+          <Text mb={2}>Excel File: {excelFileName}</Text>
+          <Button as="a" href={excelFileUrl} download={excelFileName}>
+            Test Scores
+          </Button>
+        </Flex>
+      )}
     </Flex>
   );
 }

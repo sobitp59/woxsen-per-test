@@ -8,10 +8,15 @@ interface TestMenuProps {
   onShowIAbInstructionsButtonClick: () => void;
   showAbilityTesting: boolean; // Add prop to indicate if Ability Testing phase is active
   showInferentialAbilityTesting: boolean;
+  personalityScore: boolean;
+  showScore: boolean; 
+  showTestInstructions: boolean;
+  showAbTestInstructions : boolean;
+  showIAbTestInstructions: boolean
 }
 
 export default function TestMenu(props: TestMenuProps) {
-  const { onShowInstructionsButtonClick, onShowAbInstructionsButtonClick, onShowIAbInstructionsButtonClick, showAbilityTesting, showInferentialAbilityTesting } = props;
+  const { onShowInstructionsButtonClick, onShowAbInstructionsButtonClick, onShowIAbInstructionsButtonClick, showAbilityTesting, showInferentialAbilityTesting ,personalityScore, showScore,showTestInstructions, showAbTestInstructions ,showIAbTestInstructions} = props;
 
   const handleClick = () => {
     if (showAbilityTesting) {
@@ -23,7 +28,7 @@ export default function TestMenu(props: TestMenuProps) {
     }
   };
 
-  return (
+  return !showScore && !personalityScore && !showTestInstructions &&  !showAbTestInstructions && !showIAbTestInstructions ? (
     <Flex
       width="full"
       my={2}
@@ -42,8 +47,8 @@ export default function TestMenu(props: TestMenuProps) {
         >
           Instructions
         </Button>
-        <TestTimer />
+        {/* <TestTimer /> */}
       </Flex>
     </Flex>
-  );
+  ) : null;
 }

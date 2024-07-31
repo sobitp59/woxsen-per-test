@@ -12,7 +12,23 @@ export interface TestAnswerOption {
   score?: number;
 }
 
-export function getQuestionAnswerScore(
+// export function getQuestionAnswerScore(
+//   questionNumber: number,
+//   answer: string
+// ): number | undefined {
+//   const question = personalityTest.find(
+//     (q) => q.no === questionNumber
+//   );
+
+//   if (!question) return 0;
+
+//   const selectedOption = question.answerOptions.find(
+//     (option) => option.answer === answer
+//   );
+
+//   return selectedOption?.score;
+// }
+export function getQuestionAnswerPersonalityScore(
   questionNumber: number,
   answer: string
 ): number | undefined {
@@ -20,11 +36,11 @@ export function getQuestionAnswerScore(
     (q) => q.no === questionNumber
   );
 
-  if (!question) return 0;
+  if (!question) return;
 
   const selectedOption = question.answerOptions.find(
     (option) => option.answer === answer
   );
 
-  return selectedOption?.score;
+  return selectedOption && selectedOption?.score;
 }
