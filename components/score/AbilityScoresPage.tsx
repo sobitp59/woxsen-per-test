@@ -2,52 +2,48 @@ import React, { useEffect, useState } from 'react';
 import { Flex, Text, Table, Thead, Tbody, Tr, Th, Td, Button } from '@chakra-ui/react';
 import { questions } from '../../data/ability-test';
 import InferentialAbilityScoring from './InferentialAbilityScoring';
-import Link from 'next/link';
 import { useRouter } from 'next/router';
+
+// Define interfaces for SectionScores and SectionScore
+interface SectionScore {
+  total: number;
+  obtained: number;
+}
+
+interface SectionScores {
+  [section: string]: SectionScore;
+}
+
 interface AbilityScoresPageProps {
   answers: Record<number, string>;
 }
 
-const AbilityScoresPage: React.FC<AbilityScoresPageProps> = ({ answers}) => {
-  const [sectionScores, setSectionScores] = useState({})
+const AbilityScoresPage: React.FC<AbilityScoresPageProps> = ({ answers }) => {
+  const [sectionScores, setSectionScores] = useState<SectionScores>({});
   const router = useRouter();
-  // const sectionScores = questions.reduce((acc, question) => {
-  //   if (!acc[question.section]) {
-  //     acc[question.section] = { total: 0, obtained: 0 };
-  //   }
 
-  //   acc[question.section].total += 1; 
-  //   const userAnswer = answers[question.no];
-  //   const correctOption = question.options.find(option => option.score === 1);
-  //   if (userAnswer === correctOption?.answer) {
-  //     acc[question.section].obtained += 1;
-  //   }
-
-  //   return acc;
-  // }, {} as Record<string, { total: number, obtained: number }>);
-
-  async function getAbilityScore(){
+  async function getAbilityScore() {
     try {
-      const response = await fetch("/api/ability-score", {
-        method : "GET"
+      const response = await fetch('/api/ability-score', {
+        method: 'GET',
       });
       if (response.ok) {
         const json = await response.json();
-        console.log('Reading csv data : ', json.data)
-        setSectionScores(json.data)
+        console.log('Reading csv data : ', json.data);
+        setSectionScores(json.data as SectionScores);
       } else {
-        throw new Error("Failed to fetch CSV files");
+        throw new Error('Failed to fetch CSV files');
       }
     } catch (error) {
-      console.log('Error getting ability score')
+      console.log('Error getting ability score:', error);
     }
   }
 
   useEffect(() => {
-    getAbilityScore()
-  }, [])
+    getAbilityScore();
+  }, []);
 
-  console.log('SECTION SCORES ', sectionScores) 
+  console.log('SECTION SCORES ', sectionScores);
 
   return (
     <Flex
@@ -69,7 +65,7 @@ const AbilityScoresPage: React.FC<AbilityScoresPageProps> = ({ answers}) => {
           </Tr>
         </Thead>
         <Tbody>
-          {sectionScores && Object.entries(sectionScores).map(([section, { total, obtained }]) => (
+          {Object.entries(sectionScores).map(([section, { total, obtained }]) => (
             <Tr key={section}>
               <Td>{section}</Td>
               <Td>{total}</Td>
@@ -80,14 +76,14 @@ const AbilityScoresPage: React.FC<AbilityScoresPageProps> = ({ answers}) => {
       </Table>
       <Button
         mt={8}
-        colorScheme="blue" 
-        variant="solid" 
-        onClick={() => router.push("/")} 
+        colorScheme="blue"
+        variant="solid"
+        onClick={() => router.push('/')}
       >
         Complete
       </Button>
-  
-      {/* <InferentialAbilityScoring answers={[]}/> */}
+
+      {/* <InferentialAbilityScoring answers={answers}/> */}
     </Flex>
   );
 };

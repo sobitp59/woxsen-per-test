@@ -39,7 +39,7 @@ export default function InferentialAbilityTestInstructions({ onCloseIAbTestInstr
 
       <Flex direction="column" align="center" justify="center" minH="10vh" p={4}>
         <Text mb={4} textAlign="center">
-          Please click 'Go ahead'.
+          Please click &apos;Go ahead&apos;.
         </Text>
         <Button onClick={handleIAbStartTest} colorScheme="blue">
           Go ahead

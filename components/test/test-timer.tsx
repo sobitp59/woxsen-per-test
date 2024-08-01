@@ -17,7 +17,7 @@ export default function TestTimer({ running, onEnd }: TestTimerProps) {
   );
 
   useEffect(() => {
-    let intervalId: NodeJS.Timeout;
+    let intervalId: NodeJS.Timeout | undefined;
 
     if (running && elapsedTime.isNone()) {
       setElapsedTime(
@@ -32,13 +32,19 @@ export default function TestTimer({ running, onEnd }: TestTimerProps) {
         );
       }, SECOND_IN_MILLISECONDS);
     } else {
-      clearInterval(intervalId);
+      if (intervalId !== undefined) {
+        clearInterval(intervalId);
+      }
       if (elapsedTime.isSome() && onEnd) {
         onEnd(elapsedTime.value);
       }
     }
 
-    return () => clearInterval(intervalId);
+    return () => {
+      if (intervalId !== undefined) {
+        clearInterval(intervalId);
+      }
+    };
   }, [running, elapsedTime, onEnd]);
 
   return (

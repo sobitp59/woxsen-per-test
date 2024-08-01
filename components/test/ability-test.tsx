@@ -7,14 +7,14 @@ import TestAnswerOption from './test-answer-option';
 import dayjs from 'dayjs';
 
 interface AbilityQuestionsProps {
-  onComplete: (timeRecords: Record<string, string>) => void; 
+  onComplete: (timeRecords: string) => void;
 }
 export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
-  const [setStartTimes, setSetStartTimes] = useState<Record<number, dayjs.Dayjs>>({});
   const [setElapsedTimes, setSetElapsedTimes] = useState<Record<number, string>>({});
+  const [setStartTimes, setSetStartTimes] = useState<Record<number, dayjs.Dayjs>>({});
   const [lastFileNumber, setLastFileNumber] = useState<number>(0);
 
   useEffect(() => {
@@ -23,7 +23,6 @@ export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) 
     setSetStartTimes(prev => ({ ...prev, [1]: initialTime }));
     fetchLatestFileNumber();
   }, []);
-  
 
   const fetchLatestFileNumber = async () => {
     try {
@@ -32,7 +31,7 @@ export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) 
         throw new Error('Failed to fetch latest file number');
       }
       const data = await response.json();
-      setLastFileNumber(data.latestPsychometricFileNumber || 0);
+      setLastFileNumber(data.latestPyschometricFileNumber || 0);
     } catch (error) {
       console.error('Error fetching latest file number:', error);
     }
@@ -55,77 +54,66 @@ export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) 
     setAnswers((prevAnswers) => ({ ...prevAnswers, [currentQuestion.no]: value }));
   }
 
-  async function handleGoAhead() {
-    if (startTime === null) {
-      console.error("Start time is not set");
-      return;
-    }
-  
-    const endTime = dayjs();
-    const totalElapsedTime = endTime.diff(startTime, 'seconds');
-  
-    // Prepare time records
-    const setCount = Math.ceil(questions.length / 4);
-    const completeTimeRecordsArray = [];
-    for (let i = 1; i <= setCount; i++) {
-      const elapsedTime = setElapsedTimes[i] || '0 seconds';
-      completeTimeRecordsArray.push(`Set ${i}: ${elapsedTime}`);
-    }
-    completeTimeRecordsArray.push(`Total: ${totalElapsedTime} seconds`);
-  
-    const completeTimeRecordsString = completeTimeRecordsArray.join(', ');
-  
-    console.log(completeTimeRecordsString);
-  
+  function handleGoAhead(recordsString: string) {
+    console.log('Complete time records array:', recordsString);
+
     const newFileNumber = lastFileNumber + 1;
     const filename = `psychometricability_sheet_${newFileNumber}.csv`;
-  
-    try {
-      const response = await fetch("/api/save-csv", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ 
-          testScores: Object.values(answers), 
-          filename, 
-          moduleType: 'Ability', 
-          timeRecords: completeTimeRecordsString
-        }),
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to save personality test");
-      }
-  
-      const result = await response.json();
+
+    fetch("/api/save-csv", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        testScores: Object.values(answers),
+        filename,
+        moduleType: 'Ability',
+        timeRecords: recordsString
+      }),
+    })
+    .then(response => response.json())
+    .then(result => {
       console.log("CSV File saved successfully:", result.filename);
-  
-      onComplete(completeTimeRecordsString);
-    } catch (error) {
+      onComplete(recordsString);
+    })
+    .catch(error => {
       console.error("Error saving personality test:", error);
-    }
+    });
   }
-  
+
   function handleNextButtonClick() {
     const nextIndex = currentQuestionIndex + 1;
   
     if (nextIndex % 4 === 0) {
       const endTime = dayjs();
-      const setNumber = nextIndex / 4;
-      const startTimeForSet = setSetStartTimes[setNumber];
+      const setNumber = Math.ceil(nextIndex / 4);
+      const startTimeForSet = setStartTimes[setNumber] || dayjs();
+  
       if (startTimeForSet) {
         const setElapsedTime = endTime.diff(startTimeForSet, 'seconds');
-        console.log(`Elapsed time for set ${setNumber}: ${setElapsedTime} seconds`);
   
-        setSetElapsedTimes(prev => ({ ...prev, [setNumber]: `${setElapsedTime} seconds` }));
-        setSetStartTimes(prev => ({ ...prev, [setNumber]: endTime })); // Update start time for the next set
+        console.log(`Start time for Set ${setNumber}: ${startTimeForSet.format()}`);
+        console.log(`End time for Set ${setNumber}: ${endTime.format()}`);
+        console.log(`Elapsed time for Set ${setNumber}: ${setElapsedTime} seconds`);
+  
+        setSetElapsedTimes(prev => {
+          const updatedTimes = { ...prev, [setNumber]: `${setElapsedTime} seconds` };
+          return updatedTimes;
+        });
+        setSetStartTimes(prev => ({ ...prev, [setNumber + 1]: endTime })); 
+  
+        if (setNumber === 3) {
+          const correctedElapsedTime = 1 + setElapsedTime ; 
+          const totalElapsedTime = dayjs().diff(startTime, 'seconds');
+          const recordsString = `Set 1: ${setElapsedTimes[1] || '0 seconds'}, Set 2: ${setElapsedTimes[2] || '0 seconds'}, Set 3: ${correctedElapsedTime} seconds, Total: ${totalElapsedTime} seconds`;
+          handleGoAhead(recordsString);
+          return;
+        }        
       }
     }
   
     if (nextIndex >= questions.length) {
-      const totalElapsedTime = dayjs().diff(startTime, 'seconds');
-  
       // Ensure that all sets up to the last one are accounted for
       const setCount = Math.ceil(questions.length / 4);
       for (let i = 1; i <= setCount; i++) {
@@ -134,18 +122,28 @@ export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) 
         }
       }
   
-      handleGoAhead();
+      // Calculate final records string
+      const finalRecordsString = Object.entries(setElapsedTimes)
+        .map(([setNumber, elapsedTime]) => `Set ${setNumber}: ${elapsedTime}`)
+        .concat(`Total: ${dayjs().diff(startTime, 'seconds')} seconds`)
+        .join(', ');
+  
+      console.log(`Final records string: ${finalRecordsString}`);
+      handleGoAhead(finalRecordsString);
     } else {
       setCurrentQuestionIndex(nextIndex);
     }
   }
   
   
+
   function handlePreviousButtonClick() {
     setCurrentQuestionIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
   }
 
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+
+
 
   // Show the AbilityScoresPage component when the user reaches the end of the questions
   // if (currentQuestionIndex >= questions.length) {

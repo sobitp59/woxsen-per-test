@@ -63,8 +63,8 @@ export default function TestInstructions({ onCloseTestInstructions }: TestInstru
             worded poorly. Go with what feels best.
           </ListItem>
           <ListItem>
-            Answer the questions as "the way you are", not "the way you'd like
-            to be seen by others".
+          Answer the questions as &quot;the way you are&quot;, not &quot;the way you&apos;d like
+          to be seen by others&quot;.
           </ListItem>
         </UnorderedList>
       </Flex>
@@ -78,7 +78,7 @@ export default function TestInstructions({ onCloseTestInstructions }: TestInstru
       </Button> */}
       <Flex direction="column" align="center" justify="center" minH="10vh" p={4}>
         <Text mb={4} textAlign="center">
-          Please click 'Go ahead'.
+          Please click &apos;Go ahead&apos;.
         </Text>
         <Button onClick={handleStartTest} colorScheme="blue">
           Go ahead

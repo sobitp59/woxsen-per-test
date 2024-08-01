@@ -10,7 +10,7 @@ const processCSV = (filePath: string) => {
       verbal: { total: 4, obtained: 0 },
       numerical: { total: 4, obtained: 0 },
       analytical: { total: 4, obtained: 0 },
-      inferential: { total: 18, obtained: 0 }, 
+      inferential: { total: 18, obtained: 0 },
     };
 
     fs.readFile(filePath, (err, data) => {
@@ -28,7 +28,7 @@ const processCSV = (filePath: string) => {
           return reject('Error parsing CSV: ' + err);
         }
 
-        rows.forEach(row => {
+        rows.forEach((row: { [x: string]: string; }) => {
           const questionNumber = parseInt(row['S.No']);
           const score = parseInt(row['Score']);
 
@@ -58,11 +58,32 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ message: 'Method Not Allowed' });
   }
 
-  const filePath = path.join(process.cwd(), 'public', 'csv-files', 'psychometricability_sheet_1.csv');
-
   try {
-    const parsedData = await processCSV(filePath);
+    // Path to the directory where the files are stored
+    const directoryPath = path.resolve('./public/csv-files');
+    const files = fs.readdirSync(directoryPath);
+
+    // Function to get the latest file number based on the prefix
+    const getLatestFileNumber = (prefix: string): number => {
+      const fileNumbers = files
+        .filter(file => file.startsWith(prefix) && file.endsWith('.csv'))
+        .map(file => {
+          const match = file.match(new RegExp(`${prefix}(\\d+)\\.csv`));
+          return match ? parseInt(match[1], 10) : 0;
+        });
+
+      return fileNumbers.length > 0 ? Math.max(...fileNumbers) : 0;
+    };
+
+    const latestFileNumber = getLatestFileNumber('psychometricability_sheet_');
+    if (latestFileNumber === 0) {
+      return res.status(404).json({ message: 'No psychometricability_sheet files found' });
+    }
+
+    const latestFilePath = path.join(directoryPath, `psychometricability_sheet_${latestFileNumber}.csv`);
+    const parsedData = await processCSV(latestFilePath);
     res.status(200).json({ data: parsedData });
+
   } catch (error) {
     console.error('Error getting ability score:', error);
     res.status(500).json({ message: 'Error getting Ability score' });

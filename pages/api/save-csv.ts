@@ -60,41 +60,45 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
 
-  let demoAnswerData = moduleType === 'Demographic' && Object.keys(testScores).map((questionNumber, index) => {
-
-    // TODO : look for question number 7,8,15 without specification
-    // const demoAnswer = ((Number(questionNumber) === 7 && testScores.answer === 'State Board') || (Number(questionNumber) === 8 && testScores.answer === 'State Board') || (Number(questionNumber) === 15 && testScores.answer === 'Yes') ) ? testScores[questionNumber]?.answer : Number(questionNumber) === 13 ? `Mother - ${testScores[questionNumber].mother} Father : ${testScores[questionNumber].father}`:  testScores[questionNumber]
-    const demoAnswer = (Number(questionNumber) === 7 || Number(questionNumber) === 8 || Number(questionNumber) === 15 ) ? testScores[questionNumber]?.answer : Number(questionNumber) === 13 ? `Mother - ${testScores[questionNumber].mother} Father : ${testScores[questionNumber].father}`:  testScores[questionNumber]
-    const demoSpecification = (Number(questionNumber) === 7 || Number(questionNumber) === 8 || Number(questionNumber) === 15 ) ? testScores[questionNumber]?.specification : 'N/A'
+  const demoAnswerData: { sNo: number; question: string; answer: any; specification: any; time: any; }[] = moduleType === 'Demographic' && testScores ? Object.keys(testScores).map((questionNumber, index) => {
+    const demoAnswer = (Number(questionNumber) === 7 || Number(questionNumber) === 8 || Number(questionNumber) === 15)
+      ? testScores[questionNumber]?.answer
+      : Number(questionNumber) === 13
+        ? `Mother - ${testScores[questionNumber].mother} Father : ${testScores[questionNumber].father}`
+        : testScores[questionNumber];
+    
+    const demoSpecification = (Number(questionNumber) === 7 || Number(questionNumber) === 8 || Number(questionNumber) === 15)
+      ? testScores[questionNumber]?.specification
+      : 'N/A';
 
     const time = timeRecords[`Question ${Number(questionNumber)}`] || 'N/A';
     
     return {
-      sNo : index +1,
-      question : `Question ${index + 1}`,
-      answer : demoAnswer,
-      specification : demoSpecification,
-      time 
-    }
-  })
+      sNo: index + 1,
+      question: `Question ${index + 1}`,
+      answer: demoAnswer,
+      specification: demoSpecification,
+      time
+    };
+  }) : [];
 
 
   let csvContent = moduleType === 'Demographic' ? generateCsvContentForDemographic(demoAnswerData) :generateCsvContent(testScoresData, moduleType, timeRecords);
-
   console.log('CSV CONTENT ', csvContent)
-  let lastFileNumber = 0;
-  lastFileNumber++;
-  const filename1 = `psychometricability_sheet_${lastFileNumber}.csv`;
+ 
+  
+  // console.log('LAST FILE N ', lastFileNumber)
+
+  // const filename1 = `psychometricability_sheet_${lastFileNumber}.csv`;
   // const filepathMerge = path.join(process.cwd(), 'public', 'csv-files', filename1);
   const filePath = path.join(process.cwd(), 'public', 'csv-files', filename);
 
-  const readFilePathPsy: string = moduleType === 'Inferential' ? path.join(process.cwd(), 'public', 'csv-files', filename1) : '';
-  const filepathMerge = path.join(process.cwd(), 'public', 'csv-files', filename1);
 
   try {
     await fs.promises.mkdir(path.dirname(filePath), { recursive: true });
 
     if (moduleType === 'Inferential') {
+      const filepathMerge = path.join(process.cwd(), 'public', 'csv-files', filename);
       csvContent = '\n' + csvContent; 
       await fs.promises.appendFile(filepathMerge, csvContent);
     } else {
@@ -107,6 +111,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(500).json({ message: 'Error saving CSV file' });
   }
 }
+
 
 function generateCsvContent(testScores: any[], moduleType : string, timeRecords: Record<string, string> ): string {
   const header = 'S.No,Statement,Score,Time\n';
@@ -143,7 +148,7 @@ function generateCsvContent(testScores: any[], moduleType : string, timeRecords:
 // generate csv for demo : serial number, question , answer
 
 
-function generateCsvContentForDemographic(demoAnswerData: any[] ): string {
+function generateCsvContentForDemographic(demoAnswerData: any[]): string {
   const header = 'S.No,Question,Answer,Specification,Time\n';
 
   const rows = demoAnswerData.map(({ sNo, question, answer, specification, time }) => {

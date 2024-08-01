@@ -1,7 +1,7 @@
 import { Flex, Text, Button, Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { inferentialAbilityQuestions } from "../../data/Inferential-test"; 
-import { getQuestionAnswerScore } from "../../lib/inferential-test";
+// import { getQuestionAnswerScore } from "../../lib/inferential-test";
 interface InferentialAbilityScoringProps {
   answers: Record<number, { answer: string; score?: number }>;
   // answers: Record<number, string>;

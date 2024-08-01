@@ -39,7 +39,7 @@ export default function AbilityTestInstructions({ onCloseAbTestInstructions }: A
 
       <Flex direction="column" align="center" justify="center" minH="10vh" p={4}>
         <Text mb={4} textAlign="center">
-          Please click 'Go ahead'.
+          Please click &apos;Go ahead&apos;.
         </Text>
         <Button onClick={handleAbStartTest} colorScheme="blue">
           Go ahead

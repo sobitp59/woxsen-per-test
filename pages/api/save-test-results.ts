@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { saveToCsv } from "../../lib/csv-utils";
 import { CsvData } from "../../lib/types";
-import { getQuestionAnswerScore } from "../../lib/personality-test";
+import { getQuestionAnswerPersonalityScore } from "../../lib/personality-test";
 import test from "node:test";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -20,7 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       parsedAnswer = answer.toString();
     }
 
-    const score = getQuestionAnswerScore(index + 1, parsedAnswer);
+    const score = getQuestionAnswerPersonalityScore(index + 1, parsedAnswer);
 
     if (score === undefined) {
       throw new Error(`Score undefined for answer at index ${index}`);
@@ -30,6 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sNo: index + 1,
       statement: `Question ${index + 1}`, // Adjust as needed
       score: score,
+      Time: 'N/A'
     };
   });
 

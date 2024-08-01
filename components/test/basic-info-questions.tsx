@@ -19,17 +19,30 @@ interface BasicInfoQuestionsProps {
 
 export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string | { answer: string, specification: string } | { mother: string, father: string }>>({});
+  const [answers, setAnswers] = useState<Record<number, string | { answer: string, specification: string } | { mother: string, father: string } | undefined>>({});
   const [dualTextAnswers, setDualTextAnswers] = useState<{ mother?: string; father?: string }>({});
   const [counselingReason, setCounselingReason] = useState('');
   const [counselingReason7, setCounselingReason7] = useState('');
   const [counselingReason8, setCounselingReason8] = useState('');
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null); // Track start time
   const [lastFileNumber, setLastFileNumber] = useState<number>(0);
-
   useEffect(() => {
     setStartTime(dayjs());
+    fetchLatestFileNumber();
   }, []);
+
+  const fetchLatestFileNumber = async () => {
+    try {
+      const response = await fetch('/api/get-file-numbers');
+      if (!response.ok) {
+        throw new Error('Failed to fetch latest file number');
+      }
+      const data = await response.json();
+      setLastFileNumber(data.latestDemographicFileNumber || 0);
+    } catch (error) {
+      console.error('Error fetching latest file number:', error);
+    }
+  };
 
   const currentQuestion = DemographicQuestions[currentQuestionIndex];
 
@@ -50,13 +63,27 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
 
   const { getRootProps, getRadioProps, setValue } = useRadioGroup({
     name: "answer",
-    defaultValue: answers[currentQuestion.no] || "",
+    // defaultValue: answers[currentQuestion.no] || "",
+    defaultValue: typeof answers[currentQuestion.no] === 'string'
+      ? answers[currentQuestion.no] as string
+      : '',
     onChange: (value) => handleAnswerChange(value),
   });
 
+  // useEffect(() => {
+  //   setValue(answers[currentQuestion.no] || "");
+  // }, [currentQuestionIndex, answers, setValue]);
   useEffect(() => {
-    setValue(answers[currentQuestion.no] || "");
-  }, [currentQuestionIndex, answers, setValue]);
+    const answer = answers[currentQuestion.no];
+    if (typeof answer === 'string') {
+      setValue(answer);
+    } else if (typeof answer === 'object' && 'answer' in answer) {
+      setValue(answer.answer);
+    } else {
+      setValue("");
+    }
+  }, [currentQuestionIndex, answers, setValue, currentQuestion.no]);
+
 
   function handleAnswerChange(value: string) {
     console.log('DEMO VALUE ', value);
@@ -128,20 +155,49 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
     setDualTextAnswers(prev => ({ ...prev, [field]: value }));
   }
 
+  // function handleNextButtonClick() {
+  //   // Check if the current question needs additional text input
+  //   if (currentQuestion.no === 15 && answers[15]?.answer === 'Yes' && counselingReason.trim() === '') {
+  //     alert('Please specify why you require counseling.');
+  //     return;
+  //   } else if (currentQuestion.no === 7 && answers[7]?.answer === 'State Board' && counselingReason7.trim() === '') {
+  //     alert('Please specify your State Board.');
+  //     return;
+  //   } else if (currentQuestion.no === 8 && answers[8]?.answer === 'State Board' && counselingReason8.trim() === '') {
+  //     alert('Please specify your State Board.');
+  //     return;
+  //   }
+
+  //   if (currentQuestionIndex === 14 && answers[15] === 'Yes') {
+  //     setCurrentQuestionIndex(15);
+  //   } else if (currentQuestionIndex < DemographicQuestions.length - 1) {
+  //     setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+  //   } else {
+  //     handleGoAhead();
+  //   }
+  // }
   function handleNextButtonClick() {
     // Check if the current question needs additional text input
-    if (currentQuestion.no === 15 && answers[15]?.answer === 'Yes' && counselingReason.trim() === '') {
+    if (currentQuestion.no === 15 &&
+      typeof answers[15] === 'object' && 'answer' in answers[15] &&
+      answers[15].answer === 'Yes' && counselingReason.trim() === '') {
       alert('Please specify why you require counseling.');
       return;
-    } else if (currentQuestion.no === 7 && answers[7]?.answer === 'State Board' && counselingReason7.trim() === '') {
+    } else if (currentQuestion.no === 7 &&
+      typeof answers[7] === 'object' && 'answer' in answers[7] &&
+      answers[7].answer === 'State Board' && counselingReason7.trim() === '') {
       alert('Please specify your State Board.');
       return;
-    } else if (currentQuestion.no === 8 && answers[8]?.answer === 'State Board' && counselingReason8.trim() === '') {
+    } else if (currentQuestion.no === 8 &&
+      typeof answers[8] === 'object' && 'answer' in answers[8] &&
+      answers[8].answer === 'State Board' && counselingReason8.trim() === '') {
       alert('Please specify your State Board.');
       return;
     }
 
-    if (currentQuestionIndex === 14 && answers[15] === 'Yes') {
+    if (currentQuestionIndex === 14 &&
+      typeof answers[15] === 'object' && 'answer' in answers[15] &&
+      answers[15].answer === 'Yes') {
       setCurrentQuestionIndex(15);
     } else if (currentQuestionIndex < DemographicQuestions.length - 1) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -149,6 +205,7 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
       handleGoAhead();
     }
   }
+
 
   function handlePreviousButtonClick() {
     if (currentQuestionIndex === 15 && answers[15] === 'Yes') {
@@ -158,6 +215,47 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
     }
   }
 
+  // async function handleGoAhead() {
+  //   if (!startTime) {
+  //     console.error("Start time is not set.");
+  //     return;
+  //   }
+
+  //   const endTime = dayjs();
+  //   const elapsedTime = endTime.diff(startTime, 'seconds'); // Calculate elapsed time in seconds
+
+  //   console.log('ELAPSED TIME ', elapsedTime);
+
+  //   const newFileNumber = lastFileNumber + 1;
+  //   const filename = `demographic_sheet_${newFileNumber}.csv`;
+  //   try {
+  //     const response = await fetch("/api/save-csv", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify({
+  //         testScores: answers,
+  //         filename,
+  //         moduleType: 'Demographic',
+  //         timeRecords: {
+  //           [`Question ${currentQuestionIndex + 1}`]: `${elapsedTime} seconds` // Ensure time is formatted correctly
+  //         }
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to save demographic test");
+  //     }
+
+  //     const result = await response.json();
+  //     console.log("CSV File saved successfully:", result.filename);
+
+  //     onComplete();
+  //   } catch (error) {
+  //     console.error("Error saving demographic test:", error);
+  //   }
+  // }
   async function handleGoAhead() {
     if (!startTime) {
       console.error("Start time is not set.");
@@ -165,13 +263,16 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
     }
 
     const endTime = dayjs();
-    const elapsedTime = endTime.diff(startTime, 'seconds'); // Calculate elapsed time in seconds
+    const elapsedTime = endTime.diff(startTime, 'seconds');
 
     console.log('ELAPSED TIME ', elapsedTime);
 
     const newFileNumber = lastFileNumber + 1;
-    setLastFileNumber(newFileNumber);
     const filename = `demographic_sheet_${newFileNumber}.csv`;
+
+    const timeRecords = {
+      [`Question ${currentQuestionIndex + 1}`]: `${elapsedTime} seconds`
+    };
 
     try {
       const response = await fetch("/api/save-csv", {
@@ -183,9 +284,7 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
           testScores: answers,
           filename,
           moduleType: 'Demographic',
-          timeRecords: {
-            [`Question ${currentQuestionIndex + 1}`]: `${elapsedTime} seconds` // Ensure time is formatted correctly
-          }
+          timeRecords
         }),
       });
 
@@ -196,19 +295,50 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
       const result = await response.json();
       console.log("CSV File saved successfully:", result.filename);
 
-      onComplete();
+      onComplete(timeRecords);
     } catch (error) {
       console.error("Error saving demographic test:", error);
     }
   }
 
+
   const progress = ((currentQuestionIndex + 1) / DemographicQuestions.length) * 100;
+
+  // useEffect(() => {
+  //   if (dualTextAnswers.mother || dualTextAnswers.father) {
+  //     setAnswers(prev => ({ ...prev, [13]: dualTextAnswers }));
+  //   }
+  // }, [dualTextAnswers]);
 
   useEffect(() => {
     if (dualTextAnswers.mother || dualTextAnswers.father) {
-      setAnswers(prev => ({ ...prev, [13]: dualTextAnswers }));
+      setAnswers(prev => ({
+        ...prev,
+        [13]: {
+          mother: dualTextAnswers.mother || '',
+          father: dualTextAnswers.father || ''
+        }
+      }));
     }
   }, [dualTextAnswers]);
+  const getInputValue = () => {
+    const answer = answers[currentQuestion.no];
+
+    if (typeof answer === 'string') {
+      return answer; // already a string
+    }
+
+    if (answer && typeof answer === 'object') {
+      // For objects, you need to decide which field to use or convert to a string
+      // Example: if it's { answer: string; specification: string; }
+      if ('answer' in answer) {
+        return answer.answer; // or some other appropriate field
+      }
+    }
+
+    return ''; // Default value if none of the conditions match
+  };
+
 
   return (
     <Flex
@@ -231,8 +361,9 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
       </Flex>
       <Flex w="full" gap={4} direction="column" {...getRootProps()}>
         {currentQuestion.type === 'text' ? (
+
           <Input
-            value={answers[currentQuestion.no] || ''}
+            value={getInputValue()}
             onChange={(e) => handleAnswerChange(e.target.value)}
           />
         ) : currentQuestion.type === 'select' && currentQuestion.options ? (
@@ -246,27 +377,36 @@ export default function BasicInfoQuestions({ onComplete }: BasicInfoQuestionsPro
               );
             })}
 
-            {currentQuestion.no === 7 && (answers[7] === 'State Board' || answers[7]?.answer === 'State Board') && (
-              <Input
-                placeholder="State Board (please specify- )"
-                value={counselingReason7}
-                onChange={(e) => handlespecify(e.target.value)}
-              />
-            )}
-            {currentQuestion.no === 8 && (answers[8] === 'State Board' || answers[8]?.answer === 'State Board') && (
-              <Input
-                placeholder="State Board (please specify- )"
-                value={counselingReason8}
-                onChange={(e) => handleHighersecondaryeducation(e.target.value)}
-              />
-            )}
-            {currentQuestion.no === 15 && (answers[15] === 'Yes' || answers[15]?.answer === 'Yes') && (
-              <Input
-                placeholder="If yes, please specify why"
-                value={counselingReason}
-                onChange={(e) => handleCounselingReasonChange(e.target.value)}
-              />
-            )}
+            {currentQuestion.no === 7 &&
+              ((typeof answers[7] === 'string' && answers[7] === 'State Board') ||
+                (typeof answers[7] === 'object' && 'answer' in answers[7] && answers[7].answer === 'State Board')) && (
+                <Input
+                  placeholder="State Board (please specify- )"
+                  value={counselingReason7}
+                  onChange={(e) => handlespecify(e.target.value)}
+                />
+              )}
+
+            {currentQuestion.no === 8 &&
+              ((typeof answers[8] === 'string' && answers[8] === 'State Board') ||
+                (typeof answers[8] === 'object' && 'answer' in answers[8] && answers[8].answer === 'State Board')) && (
+                <Input
+                  placeholder="State Board (please specify- )"
+                  value={counselingReason8}
+                  onChange={(e) => handleHighersecondaryeducation(e.target.value)}
+                />
+              )}
+
+            {currentQuestion.no === 15 &&
+              ((typeof answers[15] === 'string' && answers[15] === 'Yes') ||
+                (typeof answers[15] === 'object' && 'answer' in answers[15] && answers[15].answer === 'Yes')) && (
+                <Input
+                  placeholder="If yes, please specify why"
+                  value={counselingReason}
+                  onChange={(e) => handleCounselingReasonChange(e.target.value)}
+                />
+              )}
+
           </>
         ) : currentQuestion.type === 'dual-text' ? (
           <Flex direction="column" gap={4}>

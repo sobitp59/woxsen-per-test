@@ -20,7 +20,7 @@ const PersonalityScoresPage: React.FC<PersonalityScoresProps> = ({ traitScores, 
   const getColor = (percentage: number) => {
     if (percentage <= 2.7) {
       return { color: "red", label: "Low" };
-    } else if (percentage >= 2.7 && percentage <= 3.5) {
+    } else if (percentage >= 2.8 && percentage <= 3.5) {
       return { color: "yellow", label: "Average" };
     } else {
       return { color: "green", label: "High" };

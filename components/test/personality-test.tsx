@@ -21,10 +21,23 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   const [showScores, setShowScores] = useState(false);
   const [startTime, setStartTime] = useState<dayjs.Dayjs | null>(null);
   const [lastFileNumber, setLastFileNumber] = useState<number>(0);
-
   useEffect(() => {
-    setStartTime(dayjs()); 
+    setStartTime(dayjs());
+    fetchLatestFileNumber();
   }, []);
+
+  const fetchLatestFileNumber = async () => {
+    try {
+      const response = await fetch('/api/get-file-numbers');
+      if (!response.ok) {
+        throw new Error('Failed to fetch latest file number');
+      }
+      const data = await response.json();
+      setLastFileNumber(data.latestPersonalityFileNumber || 0);
+    } catch (error) {
+      console.error('Error fetching latest file number:', error);
+    }
+  };
 
   const currentQuestion: TestQuestion = personalityTest[currentQuestionIndex];
   const isUserAlreadyPickAnswer = answers[currentQuestion?.no] !== undefined;
@@ -85,7 +98,6 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
     const elapsedTime = endTime.diff(startTime, 'seconds');
 
     const newFileNumber = lastFileNumber + 1;
-    setLastFileNumber(newFileNumber);
     const filename = `personality_sheet_${newFileNumber}.csv`;
 
     console.log('user TEST answers', answers);
