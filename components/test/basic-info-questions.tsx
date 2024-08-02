@@ -312,18 +312,21 @@ export default function BasicInfoQuestions({
     };
 
     try {
-      const response = await fetch("/api/save-csv", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          testScores: answers,
-          filename,
-          moduleType: "Demographic",
-          timeRecords,
-        }),
-      });
+      const response = await fetch(
+        "https://woxsen-per-test-gvif4bv3a-sobitprasads-projects.vercel.app/api/save-csv",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            testScores: answers,
+            filename,
+            moduleType: "Demographic",
+            timeRecords,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to save demographic test");
