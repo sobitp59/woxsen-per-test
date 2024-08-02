@@ -32,7 +32,7 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
 
   const fetchLatestFileNumber = async () => {
     try {
-      const response = await fetch('/api/get-file-numbers');
+      const response = await fetch('https://personality-test-up.vercel.app/api/get-file-numbers');
       if (!response.ok) {
         throw new Error('Failed to fetch latest file number');
       }

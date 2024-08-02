@@ -26,7 +26,7 @@ export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) 
 
   const fetchLatestFileNumber = async () => {
     try {
-      const response = await fetch('/api/get-file-numbers');
+      const response = await fetch('https://personality-test-up.vercel.app/api/get-file-numbers');
       if (!response.ok) {
         throw new Error('Failed to fetch latest file number');
       }
@@ -60,7 +60,7 @@ export default function AbilityQuestions({ onComplete }: AbilityQuestionsProps) 
     const newFileNumber = lastFileNumber + 1;
     const filename = `psychometricability_sheet_${newFileNumber}.csv`;
 
-    fetch("/api/save-csv", {
+    fetch("https://personality-test-up.vercel.app/api/save-csv", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

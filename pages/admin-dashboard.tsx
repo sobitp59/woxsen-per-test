@@ -14,7 +14,7 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function fetchCsvFiles() {
       try {
-        const response = await fetch("/api/csv-files");
+        const response = await fetch("https://personality-test-up.vercel.app/api/csv-files");
         if (response.ok) {
           const files = await response.json();
           setCsvFiles(files);
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
               for (let i = 0; i < filesForCategory.length; i++) {
                 const file = filesForCategory[i];
                 try {
-                  const csvData = await fetch(`/api/download-csv?filename=${encodeURIComponent(file)}`).then(response => response.text());
+                  const csvData = await fetch(`https://personality-test-up.vercel.app/api/download-csv?filename=${encodeURIComponent(file)}`).then(response => response.text());
                   const workbookData = XLSX.read(csvData, { type: "string" });
                   const worksheet = workbookData.Sheets[workbookData.SheetNames[0]];
                   XLSX.utils.book_append_sheet(workbook, worksheet, `${category} Sheet ${i + 1}`);

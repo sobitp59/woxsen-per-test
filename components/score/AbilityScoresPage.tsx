@@ -24,7 +24,7 @@ const AbilityScoresPage: React.FC<AbilityScoresPageProps> = ({ answers }) => {
 
   async function getAbilityScore() {
     try {
-      const response = await fetch('/api/ability-score', {
+      const response = await fetch('https://personality-test-up.vercel.app/api/ability-score', {
         method: 'GET',
       });
       if (response.ok) {
