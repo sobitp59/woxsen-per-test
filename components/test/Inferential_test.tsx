@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import { Flex, Text, Button, Progress, useRadioGroup } from "@chakra-ui/react";
 import TestAnswerOption from "./test-answer-option";
 import { inferentialAbilityQuestions } from "../../data/Inferential-test";
@@ -15,9 +15,9 @@ interface InferentialAbilityQuestionsProps {
   onComplete: (timeRecords: Record<string, string>) => void;
 }
 
-const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = ({
-  onComplete,
-}) => {
+const InferentialAbilityQuestions: React.FC<
+  InferentialAbilityQuestionsProps
+> = ({ onComplete }) => {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, AnswerOption>>({});
@@ -32,14 +32,16 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
 
   const fetchLatestFileNumber = async () => {
     try {
-      const response = await fetch('https://personality-test-up.vercel.app/api/get-file-numbers');
+      const response = await fetch(
+        "https://woxsen-per-test.vercel.app/api/get-file-numbers"
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch latest file number');
+        throw new Error("Failed to fetch latest file number");
       }
       const data = await response.json();
       setLastFileNumber(data.latestPyschometricFileNumber || 0);
     } catch (error) {
-      console.error('Error fetching latest file number:', error);
+      console.error("Error fetching latest file number:", error);
     }
   };
 
@@ -47,18 +49,20 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
   const isUserAlreadyPickAnswer = answers[currentQuestion.no] !== undefined;
 
   const { getRootProps, getRadioProps, setValue } = useRadioGroup({
-    name: 'answer',
-    defaultValue: answers[currentQuestion.no]?.answer || '',
+    name: "answer",
+    defaultValue: answers[currentQuestion.no]?.answer || "",
     onChange: (value) => handleAnswerChange(value),
   });
 
   useEffect(() => {
-    setValue(answers[currentQuestion.no]?.answer || '');
+    setValue(answers[currentQuestion.no]?.answer || "");
   }, [currentQuestionIndex, answers, setValue]);
 
   function handleAnswerChange(value: string) {
-    const selectedOption = currentQuestion.options.find(option => option.answer === value);
-    setAnswers(prevAnswers => ({
+    const selectedOption = currentQuestion.options.find(
+      (option) => option.answer === value
+    );
+    setAnswers((prevAnswers) => ({
       ...prevAnswers,
       [currentQuestion.no]: {
         answer: value,
@@ -69,27 +73,32 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
 
   function handleNextButtonClick() {
     if (currentQuestionIndex < inferentialAbilityQuestions.length - 1) {
-      setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
     } else {
       handleGoAhead();
     }
   }
 
   function handlePreviousButtonClick() {
-    setCurrentQuestionIndex(prevIndex => prevIndex > 0 ? prevIndex - 1 : prevIndex);
+    setCurrentQuestionIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : prevIndex
+    );
   }
 
   async function handleGoAhead() {
-    const transformedAnswer = Object.keys(answers).reduce((acc, key) => {
-      acc[key] = answers[parseInt(key)].answer; // Ensure correct key parsing
-      return acc;
-    }, {} as Record<string, string>);
+    const transformedAnswer = Object.keys(answers).reduce(
+      (acc, key) => {
+        acc[key] = answers[parseInt(key)].answer; // Ensure correct key parsing
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     const endTime = dayjs();
-    const elapsedTime = endTime.diff(startTime, 'seconds');
+    const elapsedTime = endTime.diff(startTime, "seconds");
     const newFileNumber = lastFileNumber;
     const filename = `psychometricability_sheet_${newFileNumber}.csv`;
-    
+
     try {
       const response = await fetch("/api/save-csv", {
         method: "POST",
@@ -99,9 +108,9 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
         body: JSON.stringify({
           testScores: Object.values(transformedAnswer),
           filename,
-          moduleType: 'Inferential',
-          timeRecords: `${elapsedTime} seconds`
-        })
+          moduleType: "Inferential",
+          timeRecords: `${elapsedTime} seconds`,
+        }),
       });
 
       if (!response.ok) {
@@ -117,7 +126,8 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
     }
   }
 
-  const progress = ((currentQuestionIndex + 1) / inferentialAbilityQuestions.length) * 100;
+  const progress =
+    ((currentQuestionIndex + 1) / inferentialAbilityQuestions.length) * 100;
 
   return (
     <Flex
@@ -129,26 +139,53 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
       justifyContent="space-between"
       alignItems="center"
     >
-      <Progress value={progress} w="80%" />
-      <Flex direction="column" w="full" alignItems="center">
-        <Text fontWeight="bold" align="center" mb={4}>
+      <Progress
+        value={progress}
+        w="80%"
+      />
+      <Flex
+        direction="column"
+        w="full"
+        alignItems="center"
+      >
+        <Text
+          fontWeight="bold"
+          align="center"
+          mb={4}
+        >
           #{currentQuestionIndex + 1}/{inferentialAbilityQuestions.length}
         </Text>
-        <Text fontSize="lg" align="center" mb={4}>
+        <Text
+          fontSize="lg"
+          align="center"
+          mb={4}
+        >
           {currentQuestion.text}
         </Text>
-        <Flex w="full" gap={4} direction="column" {...getRootProps()}>
-          {currentQuestion.options.map(option => {
+        <Flex
+          w="full"
+          gap={4}
+          direction="column"
+          {...getRootProps()}
+        >
+          {currentQuestion.options.map((option) => {
             const radioProps = getRadioProps({ value: option.answer });
             return (
-              <TestAnswerOption key={option.answer} {...radioProps}>
+              <TestAnswerOption
+                key={option.answer}
+                {...radioProps}
+              >
                 {option.answer}
               </TestAnswerOption>
             );
           })}
         </Flex>
       </Flex>
-      <Flex direction="row" w="full" gap={4}>
+      <Flex
+        direction="row"
+        w="full"
+        gap={4}
+      >
         <Button
           w="full"
           variant="outline"
@@ -164,7 +201,9 @@ const InferentialAbilityQuestions: React.FC<InferentialAbilityQuestionsProps> = 
           disabled={!isUserAlreadyPickAnswer}
           onClick={handleNextButtonClick}
         >
-          {inferentialAbilityQuestions.length - 1 === currentQuestionIndex ? 'Submit' : 'Next'}
+          {inferentialAbilityQuestions.length - 1 === currentQuestionIndex
+            ? "Submit"
+            : "Next"}
         </Button>
       </Flex>
     </Flex>

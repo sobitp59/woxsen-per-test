@@ -1,18 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  Flex,
-  Text,
-  Button,
-  Progress,
-  useRadioGroup,
-} from "@chakra-ui/react";
-import { personalityTest } from '../../data/personality-test';
-import { TestQuestion } from '../../lib/personality-test';
-import dayjs from 'dayjs';
+import { Flex, Text, Button, Progress, useRadioGroup } from "@chakra-ui/react";
+import { personalityTest } from "../../data/personality-test";
+import { TestQuestion } from "../../lib/personality-test";
+import dayjs from "dayjs";
 import TestAnswerOption from "./test-answer-option";
 
 interface PersonalityTestProps {
-  onComplete: (scores: Record<number, string>, timeRecords: Record<string, string>) => void;
+  onComplete: (
+    scores: Record<number, string>,
+    timeRecords: Record<string, string>
+  ) => void;
 }
 
 const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
@@ -28,14 +25,16 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
 
   const fetchLatestFileNumber = async () => {
     try {
-      const response = await fetch('https://personality-test-up.vercel.app/api/get-file-numbers');
+      const response = await fetch(
+        "https://woxsen-per-test.vercel.app/api/get-file-numbers"
+      );
       if (!response.ok) {
-        throw new Error('Failed to fetch latest file number');
+        throw new Error("Failed to fetch latest file number");
       }
       const data = await response.json();
       setLastFileNumber(data.latestPersonalityFileNumber || 0);
     } catch (error) {
-      console.error('Error fetching latest file number:', error);
+      console.error("Error fetching latest file number:", error);
     }
   };
 
@@ -43,17 +42,20 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   const isUserAlreadyPickAnswer = answers[currentQuestion?.no] !== undefined;
 
   const { getRootProps, getRadioProps, setValue } = useRadioGroup({
-    name: 'answer',
-    defaultValue: answers[currentQuestion.no] || '',
+    name: "answer",
+    defaultValue: answers[currentQuestion.no] || "",
     onChange: (value) => handleAnswerChange(value),
   });
 
   useEffect(() => {
-    setValue(answers[currentQuestion.no] || '');
+    setValue(answers[currentQuestion.no] || "");
   }, [currentQuestionIndex, answers, setValue]);
 
   function handleAnswerChange(value: string) {
-    setAnswers((prevAnswers) => ({ ...prevAnswers, [currentQuestion.no]: value }));
+    setAnswers((prevAnswers) => ({
+      ...prevAnswers,
+      [currentQuestion.no]: value,
+    }));
   }
 
   function handleNextButtonClick() {
@@ -90,37 +92,47 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   }
 
   function handlePreviousButtonClick() {
-    setCurrentQuestionIndex((prevIndex) => (prevIndex > 0 ? prevIndex - 1 : prevIndex));
+    setCurrentQuestionIndex((prevIndex) =>
+      prevIndex > 0 ? prevIndex - 1 : prevIndex
+    );
   }
 
   async function handleGoAhead() {
     const endTime = dayjs();
-    const elapsedTime = endTime.diff(startTime, 'seconds');
+    const elapsedTime = endTime.diff(startTime, "seconds");
 
     const newFileNumber = lastFileNumber + 1;
     const filename = `personality_sheet_${newFileNumber}.csv`;
 
-    console.log('user TEST answers', answers);
+    console.log("user TEST answers", answers);
     console.log("Elapsed Time Personality:", elapsedTime); // Debugging log
 
     try {
       // Filter out attentiveness questions from answers
       const filteredAnswers = Object.entries(answers)
         .filter(([key]) => !isAttentivenessQuestion(Number(key)))
-        .reduce((acc, [key, value]) => {
-          acc[Number(key)] = value;
-          return acc;
-        }, {} as Record<number, string>);
+        .reduce(
+          (acc, [key, value]) => {
+            acc[Number(key)] = value;
+            return acc;
+          },
+          {} as Record<number, string>
+        );
 
       const response = await fetch("/api/save-csv", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ testScores: Object.values(filteredAnswers), filename, moduleType: 'Personality', timeRecords: `${elapsedTime} seconds` }),
+        body: JSON.stringify({
+          testScores: Object.values(filteredAnswers),
+          filename,
+          moduleType: "Personality",
+          timeRecords: `${elapsedTime} seconds`,
+        }),
       });
 
-      console.log('PERSONALITY ANSWERS ', filteredAnswers);
+      console.log("PERSONALITY ANSWERS ", filteredAnswers);
       console.log("RESPONSE ", response);
 
       if (!response.ok) {
@@ -153,10 +165,11 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
   }
 
   function getTotalQuestionCount(): number {
-    return personalityTest.filter(q => Number.isInteger(q.no)).length;
+    return personalityTest.filter((q) => Number.isInteger(q.no)).length;
   }
 
-  const progress = (getDisplayedQuestionIndex() / getTotalQuestionCount()) * 100;
+  const progress =
+    (getDisplayedQuestionIndex() / getTotalQuestionCount()) * 100;
 
   // console.log('TRAIT SCORES (personality.tsx) ', traitScores);
 
@@ -170,28 +183,49 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
       justifyContent="space-between"
       alignItems="center"
     >
-      <Progress value={progress} w="80%" />
+      <Progress
+        value={progress}
+        w="80%"
+      />
       <Flex direction="column">
         {Number.isInteger(currentQuestion.no) && (
-          <Text fontWeight="bold" align="center">
+          <Text
+            fontWeight="bold"
+            align="center"
+          >
             #{getDisplayedQuestionIndex()}/{getTotalQuestionCount()}
           </Text>
         )}
-        <Text fontSize="lg" align="center">
+        <Text
+          fontSize="lg"
+          align="center"
+        >
           {currentQuestion.question}
         </Text>
       </Flex>
-      <Flex w="full" gap={4} direction="column" {...getRootProps()}>
+      <Flex
+        w="full"
+        gap={4}
+        direction="column"
+        {...getRootProps()}
+      >
         {currentQuestion.answerOptions.map((option) => {
           const radioProps = getRadioProps({ value: option.answer });
           return (
-            <TestAnswerOption key={option.answer} {...radioProps}>
+            <TestAnswerOption
+              key={option.answer}
+              {...radioProps}
+            >
               {option.answer}
             </TestAnswerOption>
           );
         })}
       </Flex>
-      <Flex direction="row" w="full" gap={4}>
+      <Flex
+        direction="row"
+        w="full"
+        gap={4}
+      >
         <Button
           w="full"
           variant="outline"
@@ -207,11 +241,13 @@ const PersonalityTest: React.FC<PersonalityTestProps> = ({ onComplete }) => {
           disabled={!isUserAlreadyPickAnswer || !isAttentivenessCheckPassed()}
           onClick={handleNextButtonClick}
         >
-          {currentQuestionIndex === getTotalQuestionCount() + 5 ? "Submit" : "Next"}
+          {currentQuestionIndex === getTotalQuestionCount() + 5
+            ? "Submit"
+            : "Next"}
         </Button>
       </Flex>
     </Flex>
   );
-}
+};
 
 export default PersonalityTest;
