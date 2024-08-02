@@ -31,7 +31,7 @@ export default function AdminDashboard() {
     async function fetchCsvFiles() {
       try {
         const response = await fetch(
-          "https://woxsen-per-test.vercel.app/api/csv-files"
+          "https://woxsen-per-test-gvif4bv3a-sobitprasads-projects.vercel.app/api/csv-files"
         );
         if (response.ok) {
           const files = await response.json();
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
                 const file = filesForCategory[i];
                 try {
                   const csvData = await fetch(
-                    `https://woxsen-per-test.vercel.app/api/download-csv?filename=${encodeURIComponent(file)}`
+                    `https://woxsen-per-test-gvif4bv3a-sobitprasads-projects.vercel.app/api/download-csv?filename=${encodeURIComponent(file)}`
                   ).then((response) => response.text());
                   const workbookData = XLSX.read(csvData, { type: "string" });
                   const worksheet =
